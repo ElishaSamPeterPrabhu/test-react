@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages on Release
+
+# This workflow runs only when you publish a new release in GitHub's UI
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # This permission is required to push to the gh-pages branch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # Fetches all history for all tags and branches
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Use the Node.js version your project requires
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci # 'ci' is generally faster and safer for workflows than 'install'
+
+      - name: Build the project
+        run: npm run build # IMPORTANT: This must be your project's build command
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Change this line
+          publish_dir: ./build # It was ./dist in the example, change it to ./build
